@@ -1,0 +1,67 @@
+# Hardcoded stock prices dictionary
+stock_prices = {
+    "AAPL": 180,
+    "TSLA": 250,
+    "GOOG": 130,
+    "MSFT": 320,
+}
+
+import csv  # for robust CSV writing [web:29][web:26]
+
+# Collect stock data
+portfolio = {}
+while True:
+    stock = input("Enter stock symbol (or 'done' to finish): ").strip().upper()  # normalize input [web:49]
+    if stock == "DONE":
+        break
+    if stock not in stock_prices:
+        print(f"Stock {stock} not found in price list.")
+        continue
+    # validate integer quantity with try/except
+    while True:
+        qty_str = input(f"Enter quantity for {stock}: ").strip()
+        try:
+            quantity = int(qty_str)  # may raise ValueError on bad input [web:48][web:43]
+            if quantity <= 0:
+                print("Please enter a positive integer quantity.")
+                continue
+            break
+        except ValueError:
+            print("Please enter a valid integer quantity.")
+    portfolio[stock] = portfolio.get(stock, 0) + quantity
+
+# Calculate total investment
+total_investment = 0
+for stock, qty in portfolio.items():
+    total_investment += stock_prices[stock] * qty
+
+print("\nPortfolio Summary:")
+for stock, qty in portfolio.items():
+    print(f"{stock}: {qty} shares at ${stock_prices[stock]} each")
+
+print(f"Total Investment: ${total_investment}")
+
+# Optionally save results
+save = input("Save results to file? (y/n): ").strip().lower()
+if save == "y":
+    file_type = input("Save as .txt or .csv? (txt/csv): ").strip().lower()
+    filename = "portfolio." + file_type
+    if file_type == "csv":
+        # Use csv.writer and newline='' to avoid extra blank lines on Windows [web:29][web:39][web:40]
+        with open(filename, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Stock", "Quantity", "Price Per Share", "Total Value"])
+            for stock, qty in portfolio.items():
+                price = stock_prices[stock]
+                writer.writerow([stock, qty, price, price * qty])
+            writer.writerow([])
+            writer.writerow(["Total Investment", "", "", total_investment])
+    else:
+        # Default to plain text; write explicit newlines
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write("Stock Portfolio Summary\n")
+            for stock, qty in portfolio.items():
+                file.write(f"{stock}: {qty} shares at ${stock_prices[stock]}\n")
+            file.write(f"Total Investment: ${total_investment}\n")
+    print(f"Results saved to {filename}")
+      M
